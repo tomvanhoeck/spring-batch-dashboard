@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import am.ik.spring.batch.dashboard.config.BatchTableNames;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -13,8 +14,11 @@ public class JobExecutionMapper {
 
 	private final JdbcClient jdbcClient;
 
-	public JobExecutionMapper(JdbcClient jdbcClient) {
+	private final BatchTableNames tableNames;
+
+	public JobExecutionMapper(JdbcClient jdbcClient, BatchTableNames tableNames) {
 		this.jdbcClient = jdbcClient;
+		this.tableNames = tableNames;
 	}
 
 	public PageResponse<JobExecution> findJobExecutions(JobExecutionsParams params) {
@@ -32,9 +36,9 @@ public class JobExecutionMapper {
 				    je.EXIT_CODE,
 				    je.EXIT_MESSAGE
 				FROM
-				    BATCH_JOB_EXECUTION je
+				    %s je
 				    JOIN
-				        BATCH_JOB_INSTANCE ji
+				        %s ji
 				    ON  je.JOB_INSTANCE_ID = ji.JOB_INSTANCE_ID
 				WHERE
 				    (
@@ -56,7 +60,7 @@ public class JobExecutionMapper {
 				ORDER BY
 				    je.START_TIME DESC
 				LIMIT :size OFFSET :page * :size
-				""")
+				""".formatted(this.tableNames.jobExecution(), this.tableNames.jobInstance()))
 			.param("jobName", params.jobName())
 			.param("status", params.status(), Types.VARCHAR)
 			.param("startDateFrom", params.startDateFrom())
@@ -69,9 +73,9 @@ public class JobExecutionMapper {
 				SELECT
 				    COUNT(*)
 				FROM
-				    BATCH_JOB_EXECUTION je
+				    %s je
 				    JOIN
-				        BATCH_JOB_INSTANCE ji
+				        %s ji
 				    ON  je.JOB_INSTANCE_ID = ji.JOB_INSTANCE_ID
 				WHERE
 				    (
@@ -90,7 +94,7 @@ public class JobExecutionMapper {
 				        :startDateTo::TIMESTAMP IS NULL
 				    OR  je.START_TIME <= :startDateTo
 				    )
-				""")
+				""".formatted(this.tableNames.jobExecution(), this.tableNames.jobInstance()))
 			.param("jobName", params.jobName())
 			.param("status", params.status(), Types.VARCHAR)
 			.param("startDateFrom", params.startDateFrom())
@@ -120,13 +124,13 @@ public class JobExecutionMapper {
 				    je.EXIT_MESSAGE,
 				    je.LAST_UPDATED
 				FROM
-				    BATCH_JOB_EXECUTION je
+				    %s je
 				    JOIN
-				        BATCH_JOB_INSTANCE ji
+				        %s ji
 				    ON  je.JOB_INSTANCE_ID = ji.JOB_INSTANCE_ID
 				WHERE
 				    je.JOB_EXECUTION_ID = :jobExecutionId
-				""")
+				""".formatted(this.tableNames.jobExecution(), this.tableNames.jobInstance()))
 			.param("jobExecutionId", jobExecutionId)
 			.query((rs, rowNum) -> JobExecutionDetailBuilder.jobExecutionDetail()
 				.jobExecutionId(rs.getLong("JOB_EXECUTION_ID"))
@@ -151,12 +155,15 @@ public class JobExecutionMapper {
 					    jp.PARAMETER_VALUE AS VALUE,
 					    jp.IDENTIFYING
 					FROM
-					    BATCH_JOB_EXECUTION_PARAMS jp
+					    %s jp
 					WHERE
 					    jp.JOB_EXECUTION_ID = :jobExecutionId
 					ORDER BY
 					    jp.PARAMETER_NAME ASC
-					""").param("jobExecutionId", jobExecutionId).query(JobParameter.class).list();
+					""".formatted(this.tableNames.jobExecutionParams()))
+				.param("jobExecutionId", jobExecutionId)
+				.query(JobParameter.class)
+				.list();
 			List<StepExecutionSummary> stepExecutions = this.jdbcClient.sql("""
 					SELECT
 					    se.STEP_EXECUTION_ID,
@@ -168,12 +175,15 @@ public class JobExecutionMapper {
 					    se.START_TIME,
 					    se.END_TIME
 					FROM
-					    BATCH_STEP_EXECUTION se
+					    %s se
 					WHERE
 					    se.JOB_EXECUTION_ID = :jobExecutionId
 					ORDER BY
 					    se.START_TIME DESC
-					""").param("jobExecutionId", jobExecutionId).query(StepExecutionSummary.class).list();
+					""".formatted(this.tableNames.stepExecution()))
+				.param("jobExecutionId", jobExecutionId)
+				.query(StepExecutionSummary.class)
+				.list();
 			return JobExecutionDetailBuilder.from(je).parameters(jobParameters).steps(stepExecutions).build();
 		});
 	}
