@@ -44,23 +44,23 @@ Use an AMD64 build because the GPA Kubernetes cluster runs on AMD64 nodes:
 ./mvnw spring-boot:build-image \
   -Dspring-boot.build-image.builder=paketobuildpacks/builder-jammy-base:latest \
   -Dspring-boot.build-image.imagePlatform=linux/amd64 \
-  -Dspring-boot.build-image.imageName=spring-batch-dashboard:0.0.2
+  -Dspring-boot.build-image.imageName=spring-batch-dashboard:0.0.4
 ```
 
-Replace `0.0.2` with the version being released.
+Replace `0.0.4` with the version being released.
 
 ### 3. Tag the image for Nexus
 
 ```bash
-docker tag spring-batch-dashboard:0.0.2 \
-  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.2
+docker tag spring-batch-dashboard:0.0.4 \
+  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4
 ```
 
 ### 4. Push the image to Nexus
 
 ```bash
 docker push \
-  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.2
+  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4
 ```
 
 ### 5. Update the GPA deployment
@@ -68,13 +68,13 @@ docker push \
 Update the dashboard image version in:
 
 ```text
-Projects/groeipakket/continuous-delivery/jobs/deployment/templates/batch-trigger-service/03-deployment.yml
+/groeipakket/gpa-helm-charts/gpa-spring-batch-dashboard/templates/20-deployment.yaml
 ```
 
 Set the image to:
 
 ```yaml
-image: "prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.2"
+image: "prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4"
 ```
 
 The CI/CD pipeline can then deploy the updated version to the GPA environment.
