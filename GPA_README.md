@@ -44,23 +44,23 @@ Use an AMD64 build because the GPA Kubernetes cluster runs on AMD64 nodes:
 ./mvnw spring-boot:build-image \
   -Dspring-boot.build-image.builder=paketobuildpacks/builder-jammy-base:latest \
   -Dspring-boot.build-image.imagePlatform=linux/amd64 \
-  -Dspring-boot.build-image.imageName=spring-batch-dashboard:0.0.4
+  -Dspring-boot.build-image.imageName=spring-batch-dashboard:0.0.7
 ```
 
-Replace `0.0.4` with the version being released.
+Replace `0.0.7` with the version being released.
 
 ### 3. Tag the image for Nexus
 
 ```bash
-docker tag spring-batch-dashboard:0.0.4 \
-  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4
+docker tag spring-batch-dashboard:0.0.7 \
+  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.7
 ```
 
 ### 4. Push the image to Nexus
 
 ```bash
 docker push \
-  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4
+  prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.7
 ```
 
 ### 5. Update the GPA deployment
@@ -74,7 +74,43 @@ Update the dashboard image version in:
 Set the image to:
 
 ```yaml
-image: "prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.4"
+image: "prd-nexus.groeipakketapplicatie.be:5000/spring-batch-dashboard:0.0.7"
 ```
 
 The CI/CD pipeline can then deploy the updated version to the GPA environment.
+
+## UI context path
+
+The Helm chart sets the public host and path. Spring exposes the configured context path to
+the Vite/React UI at runtime, so the same image works for every tenant.
+
+```text
+Helm values
+  host: tst-gpa.groeipakketapplicatie.be
+  path: groen
+           │
+           ▼
+Spring context path
+  /admin/groen/batch-dashboard
+           │
+           ▼
+RuntimeConfigController
+  /runtime-config.js
+  request.getContextPath()
+            │
+            ▼
+main.tsx
+  loads runtime-config.js
+  initializes applicationPath
+            │
+            ▼
+React Router basename + API URLs
+```
+
+The browser URL is therefore:
+
+```text
+https://tst-gpa.groeipakketapplicatie.be/admin/groen/batch-dashboard
+```
+
+No tenant-specific Vite build is required.

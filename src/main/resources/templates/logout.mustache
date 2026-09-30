@@ -285,7 +285,7 @@
         </p>
 
         <div class="button-group">
-          <form action="/logout" method="POST">
+          <form action="{{springMacroRequestContext.contextPath}}/logout" method="POST">
             {{#_csrf}}
               <input type="hidden" name="_csrf" value="{{_csrf.token}}"/>
             {{/_csrf}}
@@ -294,7 +294,7 @@
             </button>
           </form>
 
-          <a href="/" class="secondary-button">
+          <a href="{{springMacroRequestContext.contextPath}}/" class="secondary-button">
             Cancel
           </a>
         </div>

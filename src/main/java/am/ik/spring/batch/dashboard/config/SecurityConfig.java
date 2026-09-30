@@ -4,7 +4,6 @@ import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointR
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -13,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
-
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration(proxyBeanMethods = false)
@@ -27,9 +25,7 @@ public class SecurityConfig {
 			.requestMatchers("/login", "/error")
 			.permitAll()
 			.anyRequest()
-			.authenticated())
-			.csrf(csrf -> csrf.ignoringRequestMatchers(antMatcher(HttpMethod.POST, "/login")))
-			.exceptionHandling(exceptionHandling -> {
+			.authenticated()).exceptionHandling(exceptionHandling -> {
 				MediaTypeRequestMatcher mediaTypeRequestMatcher = new MediaTypeRequestMatcher(MediaType.TEXT_HTML);
 				mediaTypeRequestMatcher.setUseEquals(true);
 				exceptionHandling

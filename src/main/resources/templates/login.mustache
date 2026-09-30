@@ -292,7 +292,7 @@
       <div class="card-body">
         <h2 class="login-title">Login</h2>
 
-        <form action="/login" method="POST" class="form-container">
+        <form action="{{springMacroRequestContext.contextPath}}/login" method="POST" class="form-container">
           {{#springMacroRequestContext.request.parameterMap.error}}
             <div id="error-message" class="error-alert visible">
               <span>{{SPRING_SECURITY_LAST_EXCEPTION}}</span>

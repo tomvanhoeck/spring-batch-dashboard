@@ -1,0 +1,1 @@
+window.__SPRING_BATCH_DASHBOARD_CONTEXT_PATH__ = "";
